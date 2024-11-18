@@ -39,10 +39,6 @@ jobs:
         run: |
           bundle exec rails zeitwerk:check
   tests:
-    strategy:
-      fail-fast: false
-      matrix:
-        slice: [ "0-2", "1-2" ]
     name: Tests
     runs-on: ubuntu-latest
     services:
