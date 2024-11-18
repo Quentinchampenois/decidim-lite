@@ -15,7 +15,7 @@ Decidim.configure do |config|
   # config.available_locales = Rails.application.secrets.decidim[:available_locales].presence || [:en]
   # Or block set it up manually and prevent ENV manipulation:
   config.available_locales = if Rails.env.test?
-                                %w[en fr]
+                                %w[en fr ca es]
                              else
                                Rails.application.secrets.decidim[:available_locales].presence || %(en fr)
                              end
