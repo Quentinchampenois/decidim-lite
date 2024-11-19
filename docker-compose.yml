@@ -37,7 +37,7 @@ services:
     networks:
       - minio_network
   sidekiq:
-    image: decidim-local:1.0.0
+    image: decidim-lite:1.0.0
     command: [ "bundle", "exec", "sidekiq", "-C", "config/sidekiq.yml" ]
     environment:
       - DATABASE_HOST=database
@@ -77,7 +77,7 @@ services:
     networks:
       - minio_network
   app:
-    image: decidim-local:1.0.0
+    image: decidim-lite:1.0.0
     command: [ "bundle", "exec", "rails", "server", "-b", "ssl://0.0.0.0:3000?key=/decidim/tls-certificate/key.pem&cert=/decidim/tls-certificate/cert.pem" ]
     environment:
       - DATABASE_HOST=database
