@@ -54,7 +54,7 @@ Rails.application.configure do
   config.log_level = %w(debug info warn error fatal).include?(ENV["RAILS_LOG_LEVEL"]) ? ENV["RAILS_LOG_LEVEL"] : :warn
 
   # Prepend all log lines with the following tags.
-  config.log_tags = [:request_id]
+  config.log_tags = [:request_id, :ip]
 
   # Use a different cache store in production.
   config.cache_store = :mem_cache_store, ENV.fetch("MEMCACHE_SERVERS", "localhost:11211")
@@ -82,6 +82,9 @@ Rails.application.configure do
     config.action_mailer.delivery_method = :letter_opener_web
     config.action_mailer.default_url_options = { port: 3000 }
   else
+    # Prevent mailer to crash on seeds
+    config.action_mailer.raise_delivery_errors = false
+
     config.action_mailer.delivery_method = :smtp
     config.action_mailer.smtp_settings = {
       address: Rails.application.secrets.smtp_address,
