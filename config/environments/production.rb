@@ -57,7 +57,7 @@ Rails.application.configure do
   config.log_tags = [:request_id]
 
   # Use a different cache store in production.
-  # config.cache_store = :mem_cache_store
+  config.cache_store = :mem_cache_store, ENV.fetch("MEMCACHE_SERVERS", "localhost:11211")
 
   # Use a real queuing backend for Active Job (and separate queues per environment).
   config.active_job.queue_adapter = :sidekiq
@@ -78,16 +78,22 @@ Rails.application.configure do
 
   # Use default logging formatter so that PID and timestamp are not suppressed.
   config.log_formatter = Logger::Formatter.new
-  config.action_mailer.smtp_settings = {
-    :address => Rails.application.secrets.smtp_address,
-    :port => Rails.application.secrets.smtp_port,
-    :authentication => Rails.application.secrets.smtp_authentication,
-    :user_name => Rails.application.secrets.smtp_username,
-    :password => Rails.application.secrets.smtp_password,
-    :domain => Rails.application.secrets.smtp_domain,
-    :enable_starttls_auto => Rails.application.secrets.smtp_starttls_auto,
-    :openssl_verify_mode => "none"
-  }
+  if ENV.fetch("ENABLE_LETTER_OPENER", "0") == "1"
+    config.action_mailer.delivery_method = :letter_opener_web
+    config.action_mailer.default_url_options = { port: 3000 }
+  else
+    config.action_mailer.delivery_method = :smtp
+    config.action_mailer.smtp_settings = {
+      address: Rails.application.secrets.smtp_address,
+      port: Rails.application.secrets.smtp_port,
+      authentication: Rails.application.secrets.smtp_authentication,
+      user_name: Rails.application.secrets.smtp_username,
+      password: Rails.application.secrets.smtp_password,
+      domain: Rails.application.secrets.smtp_domain,
+      enable_starttls_auto: Rails.application.secrets.smtp_starttls_auto,
+      openssl_verify_mode: "none"
+    }
+  end
 
   # Use a different logger for distributed setups.
   # require "syslog/logger"

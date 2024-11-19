@@ -1,17 +1,16 @@
 FROM ruby:3.2.2-slim as builder
 
 ENV RAILS_ENV=production \
-    SECRET_KEY_BASE=dummy \
-    BUNDLE_SILENCE_ROOT_WARNING=1 \
-    BUNDLE_APP_CONFIG=/usr/local/bundle
+    SECRET_KEY_BASE=dummy
 
 WORKDIR /app
 
 RUN apt-get update && \
-    apt-get -y install libpq-dev curl git libicu-dev build-essential && \
+    apt-get -y install libpq-dev curl git libicu-dev build-essential openssl && \
     curl https://deb.nodesource.com/setup_18.x | bash && \
     apt-get install -y nodejs  && \
-    gem install bundler:2.5.11
+    npm install --global yarn && \
+    gem install bundler:2.5.22
 
 COPY Gemfile* ./
 RUN bundle install -j"$(nproc)"
@@ -22,8 +21,7 @@ RUN npm install
 
 COPY . .
 
-RUN bundle exec rails zeitwerk:check
-#RUN bundle exec rails shakapacker:compile --trace
+RUN bundle exec rails shakapacker:compile
 
 RUN rm -rf node_modules tmp/cache vendor/bundle spec \
     && rm -rf /usr/local/bundle/cache/*.gem \
@@ -40,7 +38,7 @@ ENV RAILS_ENV=production \
 
 RUN apt update && \
     apt install -y postgresql-client imagemagick libproj-dev proj-bin libjemalloc2 && \
-    gem install bundler:2.5.11
+    gem install bundler:2.5.22
 
 WORKDIR /app
 

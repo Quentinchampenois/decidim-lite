@@ -27,6 +27,7 @@ gem "puma", ">= 6.3.1"
 gem "dotenv-rails", "~> 2.7"
 gem "spring"
 gem "dalli"
+gem "letter_opener_web", "~> 2.0"
 
 group :development, :test do
   gem "byebug", "~> 11.0", platform: :mri
@@ -40,7 +41,6 @@ end
 group :development do
   gem "bullet"
   gem "flamegraph"
-  gem "letter_opener_web", "~> 2.0"
   gem "listen", "~> 3.1"
   gem "memory_profiler"
   gem "rack-mini-profiler", require: false
