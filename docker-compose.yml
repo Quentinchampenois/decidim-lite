@@ -67,7 +67,9 @@ services:
     depends_on:
       - app
     volumes:
-      - shared-volume:/app
+      - ./app:/decidim/app
+      - ./config:/decidim/config
+      - ./lib:/decidim/lib
     links:
       - database
       - redis
@@ -101,7 +103,9 @@ services:
       - SCALEWAY_ID=minioadmin
       - SCALEWAY_TOKEN=minioadmin
     volumes:
-      - shared-volume:/app
+      - ./app:/decidim/app
+      - ./config:/decidim/config
+      - ./lib:/decidim/lib
     ports:
       - 3000:3000
     depends_on:

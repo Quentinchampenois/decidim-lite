@@ -3,7 +3,7 @@ FROM ruby:3.2.2-slim as builder
 ENV RAILS_ENV=production \
     SECRET_KEY_BASE=dummy
 
-WORKDIR /app
+WORKDIR /decidim
 
 RUN apt-get update && \
     apt-get -y install libpq-dev curl git libicu-dev build-essential openssl && \
@@ -47,13 +47,13 @@ RUN apt update && \
     apt install -y postgresql-client imagemagick libproj-dev proj-bin libjemalloc2 && \
     gem install bundler:2.5.22
 
-WORKDIR /app
+WORKDIR /decidim
 
 COPY --from=builder /usr/local/bundle /usr/local/bundle
-COPY --from=builder /app /app
+COPY --from=builder /decidim /decidim
 
 ENV LD_PRELOAD="libjemalloc.so.2" \
     MALLOC_CONF="background_thread:true,metadata_thp:auto,dirty_decay_ms:5000,muzzy_decay_ms:5000,narenas:2"
 
 EXPOSE 3000
-CMD ["bundle", "exec", "rails", "server", "-b", "ssl://0.0.0.0:3000?key=/app/certificate-https-local/key.pem&cert=/app/certificate-https-local/cert.pem"]
+CMD ["bundle", "exec", "rails", "server", "-b", "ssl://0.0.0.0:3000?key=/decidim/certificate-https-local/key.pem&cert=/decidim/certificate-https-local/cert.pem"]
