@@ -5,25 +5,26 @@ ENV RAILS_ENV=production \
 
 WORKDIR /decidim
 
-RUN apt-get update && \
-    apt-get -y install libpq-dev curl git libicu-dev build-essential openssl && \
-    curl https://deb.nodesource.com/setup_18.x | bash && \
-    apt-get install -y nodejs  && \
-    npm install --global yarn && \
-    gem install bundler:2.5.22
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libpq-dev curl git libicu-dev build-essential openssl \
+    && curl -fsSL https://deb.nodesource.com/setup_18.x | bash \
+    && apt-get install -y --no-install-recommends nodejs \
+    && npm install --global yarn \
+    && gem install bundler:2.5.22 \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-COPY Gemfile* ./
-RUN bundle install -j"$(nproc)"
+COPY Gemfile Gemfile.lock ./
+RUN bundle install --jobs="$(nproc)" --retry=3
 
-COPY package* ./
-COPY packages packages
-RUN npm install
+COPY packages ./
+COPY yarn.lock ./
+RUN yarn install --frozen-lock
 
 COPY . .
 
 RUN bundle exec rails shakapacker:compile
 
-RUN rm -rf node_modules tmp/cache vendor/bundle spec \
+RUN rm -rf node_modules tmp/cache vendor/bundle/spec \
     && rm -rf /usr/local/bundle/cache/*.gem \
     && find /usr/local/bundle/gems/ -name "*.c" -delete \
     && find /usr/local/bundle/gems/ -name "*.o" -delete \
@@ -34,19 +35,24 @@ FROM ruby:3.2.2-slim as runner
 
 ENV RAILS_ENV=production \
     SECRET_KEY_BASE=dummy \
-    RAILS_LOG_TO_STDOUT=true
+    LD_PRELOAD="libjemalloc.so.2" \
+    MALLOC_CONF="background_thread:true,metadata_thp:auto,dirty_decay_ms:5000,muzzy_decay_ms:5000,narenas:2"
 
-RUN apt update && \
-    apt install -y postgresql-client imagemagick libproj-dev proj-bin libjemalloc2 && \
-    gem install bundler:2.5.22
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    postgresql-client imagemagick libproj-dev proj-bin libjemalloc2 \
+    && gem install bundler:2.5.22 \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+RUN groupadd --gid 1000 decidim && \
+    useradd --uid 1000 --gid decidim --create-home --shell /bin/bash decidim
 
 WORKDIR /decidim
 
 COPY --from=builder /usr/local/bundle /usr/local/bundle
 COPY --from=builder /decidim /decidim
 
-ENV LD_PRELOAD="libjemalloc.so.2" \
-    MALLOC_CONF="background_thread:true,metadata_thp:auto,dirty_decay_ms:5000,muzzy_decay_ms:5000,narenas:2"
+RUN chown -R decidim:decidim /decidim
+USER decidim
 
 EXPOSE 3000
 CMD ["bundle", "exec", "rails", "server", "-b", "0.0.0.0"]
