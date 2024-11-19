@@ -6,7 +6,7 @@ up: build
 	@make setup-database
 
 build:
-	docker build . -f Dockerfile.dev -t decidim-local:1.0.0
+	docker build . -t decidim-local:1.0.0
 
 # Stops containers and remove volumes
 teardown:
@@ -52,3 +52,10 @@ rebuild:
 	docker compose down
 	docker volume rm decidim-app_shared-volume || true
 	@make up
+
+tls-certificate:
+	mkdir -p $(HOME)/.decidim/tls-certificate
+	openssl req -new -newkey rsa:4096 -days 365 -nodes -x509 \
+        -subj "/C=FR/ST=France/L=Paris/O=decidim/CN=decidim.eu" \
+        -keyout $(HOME)/.decidim/tls-certificate/key.pem \
+        -out $(HOME)/.decidim/tls-certificate/cert.pem

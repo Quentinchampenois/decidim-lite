@@ -70,6 +70,7 @@ services:
       - ./app:/decidim/app
       - ./config:/decidim/config
       - ./lib:/decidim/lib
+      - ${HOME}/.decidim/tls-certificate:/decidim/tls-certificate
     links:
       - database
       - redis
@@ -77,6 +78,7 @@ services:
       - minio_network
   app:
     image: decidim-local:1.0.0
+    command: [ "bundle", "exec", "rails", "server", "-b", "ssl://0.0.0.0:3000?key=/decidim/tls-certificate/key.pem&cert=/decidim/tls-certificate/cert.pem" ]
     environment:
       - DATABASE_HOST=database
       - DATABASE_USERNAME=postgres
@@ -106,6 +108,7 @@ services:
       - ./app:/decidim/app
       - ./config:/decidim/config
       - ./lib:/decidim/lib
+      - ${HOME}/.decidim/tls-certificate:/decidim/tls-certificate
     ports:
       - 3000:3000
     depends_on:
