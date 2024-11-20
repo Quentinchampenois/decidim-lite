@@ -1,6 +1,7 @@
 FROM ruby:3.2.2-slim as builder
 
 ENV RAILS_ENV=production \
+    NODE_ENV=production \
     SECRET_KEY_BASE=dummy
 
 WORKDIR /decidim
@@ -19,9 +20,10 @@ RUN bundle install --jobs="$(nproc)" --retry=3
 # Copy package and yarn files
 
 COPY . .
-RUN bundle exec rake decidim:webpacker:install
 
-RUN bundle exec rake assets:precompile && \
+RUN yarn add axe-core
+RUN bundle exec rake decidim:webpacker:install && \
+    bundle exec rake assets:precompile && \
     bundle exec rails shakapacker:compile
 
 RUN rm -rf node_modules tmp/cache vendor/bundle/spec \
@@ -34,6 +36,7 @@ RUN rm -rf node_modules tmp/cache vendor/bundle/spec \
 FROM ruby:3.2.2-slim as runner
 
 ENV RAILS_ENV=production \
+    NODE_ENV=production \
     SECRET_KEY_BASE=dummy \
     LD_PRELOAD="libjemalloc.so.2" \
     MALLOC_CONF="background_thread:true,metadata_thp:auto,dirty_decay_ms:5000,muzzy_decay_ms:5000,narenas:2"
