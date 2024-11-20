@@ -16,13 +16,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY Gemfile Gemfile.lock ./
 RUN bundle install --jobs="$(nproc)" --retry=3
 
-COPY packages ./
-COPY yarn.lock ./
-RUN yarn install --frozen-lock
+# Copy package and yarn files
 
 COPY . .
+RUN bundle exec rake decidim:webpacker:install
 
-RUN bundle exec rails shakapacker:compile
+RUN bundle exec rake assets:precompile && \
+    bundle exec rails shakapacker:compile
 
 RUN rm -rf node_modules tmp/cache vendor/bundle/spec \
     && rm -rf /usr/local/bundle/cache/*.gem \
