@@ -17,8 +17,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY Gemfile Gemfile.lock ./
 RUN bundle install --jobs="$(nproc)" --retry=3
 
-# Copy package and yarn files
-
 COPY . .
 
 RUN yarn add axe-core
