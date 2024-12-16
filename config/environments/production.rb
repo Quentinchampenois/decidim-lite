@@ -110,4 +110,12 @@ Rails.application.configure do
 
   # Do not dump schema after migrations.
   config.active_record.dump_schema_after_migration = false
+
+  config.active_storage.service_urls_expire_in = ENV.fetch("SERVICE_URLS_EXPIRE_IN") do
+    if Rails.application.secrets.dig(:storage, :s3, :access_key_id).blank?
+      "120000"
+    else
+      "1"
+    end
+  end.to_i.weeks
 end
