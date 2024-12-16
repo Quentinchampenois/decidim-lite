@@ -41,6 +41,12 @@ Rails.application.configure do
   # Store uploaded files on the local file system (see config/storage.yml for options).
   config.active_storage.service = Rails.application.secrets.dig(:storage, :provider) || :local
 
+  config.active_storage.service_urls_expire_in = if Rails.application.secrets.dig(:storage, :s3, :access_key_id).blank?
+                                                   "120000"
+                                                 else
+                                                   Rails.application.secrets.dig(:decidim, :service_urls_expires_in)
+                                                 end.to_i.weeks
+
   # Mount Action Cable outside main process or domain.
   # config.action_cable.mount_path = nil
   # config.action_cable.url = "wss://example.com/cable"
@@ -110,12 +116,4 @@ Rails.application.configure do
 
   # Do not dump schema after migrations.
   config.active_record.dump_schema_after_migration = false
-
-  config.active_storage.service_urls_expire_in = ENV.fetch("SERVICE_URLS_EXPIRE_IN") do
-    if Rails.application.secrets.dig(:storage, :s3, :access_key_id).blank?
-      "120000"
-    else
-      "1"
-    end
-  end.to_i.weeks
 end
