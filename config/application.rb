@@ -26,5 +26,8 @@ module DecidimLite
     #
     # config.time_zone = "Central Time (US & Canada)"
     # config.eager_load_paths << Rails.root.join("extras")
+    config.after_initialize do # run after the initialization of the framework itself, engines, and all the application's initializers in config/initializers
+      require "extends/forms/decidim/proposals/proposal_form_extends"
+    end
   end
 end
