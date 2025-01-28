@@ -2,21 +2,21 @@
 
 require "spec_helper"
 
-describe "User edits proposals", type: :system do
+describe "User edits proposals" do
   include_context "with a component"
   let!(:organization) { create :organization, available_locales: [:en] }
-  let!(:participatory_process) { create :participatory_process, :with_steps, organization: organization }
+  let!(:participatory_process) { create :participatory_process, :with_steps, organization: }
   let(:manifest_name) { "proposals" }
   let(:manifest) { Decidim.find_component_manifest(manifest_name) }
-  let!(:user) { create :user, :confirmed, organization: organization }
+  let!(:user) { create :user, :confirmed, organization: }
   let(:settings) { nil }
   let(:component) do
     create(:proposal_component,
            :with_creation_enabled,
            :with_attachments_allowed,
-           manifest: manifest,
+           manifest:,
            participatory_space: participatory_process,
-           settings: settings)
+           settings:)
   end
   let(:organization_traits) { [] }
 
@@ -33,20 +33,20 @@ describe "User edits proposals", type: :system do
   end
 
   context "when user has proposal" do
-    let!(:proposal) { create(:proposal, users: [user], component: component) }
+    let!(:proposal) { create(:proposal, users: [user], component:) }
     let(:settings) { { require_category: false, require_scope: false, attachments_allowed: true } }
 
     before do
       login_as user, scope: :user
       visit_component
-      click_link translated(proposal.title)
-      click_link "Edit proposal"
+      click_link_or_button translated(proposal.title)
+      click_link_or_button "Edit proposal"
       fill_in :proposal_title, with: proposal_title
       fill_in :proposal_body, with: proposal_body
     end
 
     it "can be edited" do
-      click_button "Send"
+      click_link_or_button "Send"
       expect(page).to have_content("Proposal successfully updated")
       expect(Decidim::Proposals::Proposal.last.title["en"]).to eq(proposal_title)
       expect(Decidim::Proposals::Proposal.last.body["en"]).to eq(proposal_body)
@@ -55,30 +55,30 @@ describe "User edits proposals", type: :system do
     context "when uploading a file", processing_uploads_for: Decidim::AttachmentUploader do
       it "can add image" do
         dynamically_attach_file(:proposal_documents, Decidim::Dev.asset("city.jpeg"))
-        click_button "Send"
+        click_link_or_button "Send"
         expect(page).to have_content("Proposal successfully updated")
       end
 
       it "can add images" do
         dynamically_attach_file(:proposal_documents, Decidim::Dev.asset("city.jpeg"))
-        click_button "Send"
-        click_link "Edit proposal"
+        click_link_or_button "Send"
+        click_link_or_button "Edit proposal"
         dynamically_attach_file(:proposal_documents, Decidim::Dev.asset("city2.jpeg"), remove_before: true)
-        click_button "Send"
+        click_link_or_button "Send"
         expect(page).to have_content("Proposal successfully updated")
         expect(Decidim::Proposals::Proposal.last.attachments.count).to eq(1)
       end
 
       it "can add pdf document" do
         dynamically_attach_file(:proposal_documents, Decidim::Dev.asset("Exampledocument.pdf"))
-        click_button "Send"
+        click_link_or_button "Send"
         expect(page).to have_content("Proposal successfully updated")
       end
     end
 
     context "when proposal has attachment" do
-      let!(:proposal) { create(:proposal, users: [user], component: component) }
-      let!(:attachment) { create(:attachment, title: { "en" => filename }, file: file, attached_to: proposal, weight: 0) }
+      let!(:proposal) { create(:proposal, users: [user], component:) }
+      let!(:attachment) { create(:attachment, title: { "en" => filename }, file:, attached_to: proposal, weight: 0) }
 
       context "when proposal has pdf attachment" do
         let(:filename) { "Exampledocument.pdf" }
@@ -87,22 +87,22 @@ describe "User edits proposals", type: :system do
         before do
           login_as user, scope: :user
           visit_component
-          click_link translated(proposal.title)
+          click_link_or_button translated(proposal.title)
         end
 
         it "can remove document attachment" do
-          click_link "Edit proposal"
+          click_link_or_button "Edit proposal"
 
-          click_button "Edit documents"
+          click_link_or_button "Edit documents"
           within ".upload-modal" do
-            click_button "Remove"
-            click_button "Save"
+            click_link_or_button "Remove"
+            click_link_or_button "Save"
           end
 
-          click_button "Send"
+          click_link_or_button "Send"
           expect(page).to have_content("Proposal successfully updated.")
-          expect(page).not_to have_content("Documents ")
-          expect(page).not_to have_link(filename)
+          expect(page).to have_no_content("Documents ")
+          expect(page).to have_no_link(filename)
           expect(Decidim::Proposals::Proposal.find(proposal.id).attachments).to be_empty
         end
       end
@@ -116,33 +116,33 @@ describe "User edits proposals", type: :system do
 
           settings = component.settings
           settings.comments_enabled = false
-          component.update(settings: settings)
+          component.update(settings:)
 
           visit_component
-          click_link translated(proposal.title), match: :first
+          click_link_or_button translated(proposal.title), match: :first
         end
 
         it "can remove card image" do
-          click_link "Edit proposal"
+          click_link_or_button "Edit proposal"
 
-          click_button "Edit documents"
+          click_link_or_button "Edit documents"
           within ".upload-modal" do
-            click_button "Remove"
-            click_button "Save"
+            click_link_or_button "Remove"
+            click_link_or_button "Save"
           end
 
-          click_button "Send"
+          click_link_or_button "Send"
           expect(page).to have_content("Proposal successfully updated.")
-          expect(page).not_to have_content("Images")
-          expect(page).not_to have_link(filename)
+          expect(page).to have_no_content("Images")
+          expect(page).to have_no_link(filename)
           expect(Decidim::Proposals::Proposal.find(proposal.id).attachments).to be_empty
         end
 
         it "can set new card image" do
-          click_link "Edit proposal"
+          click_link_or_button "Edit proposal"
           dynamically_attach_file(:proposal_documents, Decidim::Dev.asset("city2.jpeg"), remove_before: true)
 
-          click_button "Send"
+          click_link_or_button "Send"
           expect(page).to have_content("Proposal successfully updated.")
           expect(page).to have_content("Images")
 
@@ -155,9 +155,9 @@ describe "User edits proposals", type: :system do
     end
 
     context "when proposal has card image and document image" do
-      let!(:proposal) { create(:proposal, users: [user], component: component) }
+      let!(:proposal) { create(:proposal, users: [user], component:) }
 
-      let!(:card_image) { create(:attachment, title: { "en" => filename }, file: file, attached_to: proposal, weight: 0) }
+      let!(:card_image) { create(:attachment, title: { "en" => filename }, file:, attached_to: proposal, weight: 0) }
       let(:filename) { "city.jpeg" }
       let(:file) { Decidim::Dev.test_file(filename, "image/jpeg") }
 
@@ -168,14 +168,14 @@ describe "User edits proposals", type: :system do
       before do
         login_as user, scope: :user
         visit_component
-        click_link translated(proposal.title), match: :first
+        click_link_or_button translated(proposal.title), match: :first
       end
 
       it "attachments are in different sections" do
-        click_link "Edit proposal"
+        click_link_or_button "Edit proposal"
         page.execute_script "window.scrollBy(0,10000)"
-        expect(page).to have_selector(".attachment-details[data-filename='#{filename}']")
-        expect(page).to have_selector(".attachment-details[data-filename='#{filename2}']")
+        expect(page).to have_css(".attachment-details[data-filename='#{filename}']")
+        expect(page).to have_css(".attachment-details[data-filename='#{filename2}']")
       end
     end
   end

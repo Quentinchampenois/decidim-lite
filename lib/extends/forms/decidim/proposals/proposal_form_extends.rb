@@ -14,7 +14,6 @@ module ProposalFormExtends
     validate :check_category, if: ->(form) { form.require_category? }
     validate :check_scope, if: ->(form) { form.require_scope? }
 
-
     def categories_enabled?
       categories&.any?
     end
