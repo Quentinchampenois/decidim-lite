@@ -178,5 +178,41 @@ describe "User edits proposals" do
         expect(page).to have_css(".attachment-details[data-filename='#{filename2}']")
       end
     end
+
+    context "and category and scope are required" do
+      let!(:settings) { { scopes_enabled: true, require_category: true, require_scope: true } }
+      let(:category) { create(:category, participatory_space: participatory_process) }
+      let(:parent_scope) { create(:scope, organization:) }
+      let(:scope) { create(:subscope, parent: parent_scope) }
+      let(:proposal) { create(:proposal, users: [user], component:, decidim_scope_id: scope.id, category:) }
+
+      before do
+        login_as user, scope: :user
+        visit_component
+        click_link_or_button translated(proposal.title), match: :first
+      end
+
+      it "can edit proposal without changing category and scope" do
+        click_link_or_button "Edit proposal"
+        fill_in :proposal_body, with: "This is my new body"
+        click_link_or_button "Send"
+        expect(page).to have_content("Proposal successfully updated.")
+        expect(page).to have_content("This is my new body")
+      end
+
+      it "cannot edit proposal without a category" do
+        click_link_or_button "Edit proposal"
+        select "Please select a category", from: :proposal_category_id
+        click_link_or_button "Send"
+        expect(page).to have_content("There is an error in this field")
+      end
+
+      it "cannot edit proposal without a scope" do
+        click_link_or_button "Edit proposal"
+        select "Select a scope", from: :proposal_scope_id
+        click_link_or_button "Send"
+        expect(page).to have_content("There is an error in this field")
+      end
+    end
   end
 end
