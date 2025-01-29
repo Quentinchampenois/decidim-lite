@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-return if Rails.env.production?
+return if ENV["RAILS_ENV"] == "production"
 
 require "decidim/spring"
 
