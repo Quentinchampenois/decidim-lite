@@ -77,7 +77,7 @@ describe "User edits proposals" do
     end
 
     context "when proposal has attachment" do
-      let!(:proposal) { create(:proposal, users: [user], component:) }
+      let!(:proposal) { create(:proposal, users: [user], component:, body: proposal_body, title: proposal_title) }
       let!(:attachment) { create(:attachment, title: { "en" => filename }, file:, attached_to: proposal, weight: 0) }
 
       context "when proposal has pdf attachment" do
@@ -182,9 +182,10 @@ describe "User edits proposals" do
     context "and category and scope are required" do
       let!(:settings) { { scopes_enabled: true, require_category: true, require_scope: true } }
       let(:category) { create(:category, participatory_space: participatory_process) }
+      let!(:category_bis) { create(:category, participatory_space: participatory_process) }
       let(:parent_scope) { create(:scope, organization:) }
       let(:scope) { create(:subscope, parent: parent_scope) }
-      let(:proposal) { create(:proposal, users: [user], component:, decidim_scope_id: scope.id, category:) }
+      let(:proposal) { create(:proposal, users: [user], component:, body: proposal_body, title: proposal_title, decidim_scope_id: scope.id, category:) }
 
       before do
         login_as user, scope: :user
@@ -198,6 +199,20 @@ describe "User edits proposals" do
         click_link_or_button "Send"
         expect(page).to have_content("Proposal successfully updated.")
         expect(page).to have_content("This is my new body")
+      end
+
+      it "can edit proposal by changing scope" do
+        click_link_or_button "Edit proposal"
+        select parent_scope.name["en"], from: :proposal_scope_id
+        click_link_or_button "Send"
+        expect(page).to have_content("Proposal successfully updated.")
+      end
+
+      it "can edit proposal by changing category" do
+        click_link_or_button "Edit proposal"
+        select category_bis.name["en"], from: :proposal_category_id
+        click_link_or_button "Send"
+        expect(page).to have_content("Proposal successfully updated.")
       end
 
       it "cannot edit proposal without a category" do
