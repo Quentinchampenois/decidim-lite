@@ -26,5 +26,11 @@ module DecidimLite
     #
     # config.time_zone = "Central Time (US & Canada)"
     # config.eager_load_paths << Rails.root.join("extras")
+    config.after_initialize do
+      # extends
+      require "extends/controllers/decidim/admin/scopes_controller_extends"
+      require "extends/controllers/decidim/scopes_controller_extends"
+      require "extends/helpers/decidim/check_boxes_tree_helper_extends"
+    end
   end
 end
